@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FortySeal — Cifratura post-quantistica per storage S3</title>
+<meta name="description" content="Il layer crittografico che rende il tuo cloud cieco. Cifratura post-quantistica NIST, 0 byte leggibili su storage.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="/logo-icon.png">
+<link rel="manifest" href="/manifest.json">
+<style>
+/* ── TOKENS ───────────────────────────────────────────── */
+:root{
+ --ink:#11141B; --ink-2:#181D27; --ink-3:#1E2433; --ink-4:#252C3D;
+ --stone:#EDEEFF; --stone-2:#E4E4FF;
+ --hi:#F3F1EA; --lo:#8A91A8; --lo2:#5C6480;
+ --hi-s:#1A1A3E; --lo-s:#5558A0;
+ --amber:#636BF7; --amber-2:#7B83F9; --amber-dim:#3D44C8; --amber-bg:rgba(99,107,247,.08);
+ --stamp:#BD443D; --stamp-dim:#7A2823; --stamp-bg:rgba(189,68,61,.08);
+ --green:#6DA87A; --green-dim:#3D6B44;
+ --r:6px; --r2:12px;
+ --display:'Space Grotesk',sans-serif;
+ --body:'IBM Plex Sans',sans-serif;
+ --mono:'JetBrains Mono',monospace;
+ --max:1140px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--ink);color:var(--hi);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+ul,ol{list-style:none;}
+h1,h2,h3,h4{font-family:var(--display);line-height:1.08;letter-spacing:-0.02em;}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 40px;}
+img{display:block;max-width:100%;}
+
+/* ── BUTTONS ─────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:.5em;padding:13px 24px;border-radius:var(--r);font-weight:600;font-size:.94rem;font-family:var(--body);border:1px solid transparent;cursor:pointer;transition:all .15s;}
+.btn-amber{background:var(--amber);color:#FFFFFF;}
+.btn-amber:hover{background:var(--amber-2);transform:translateY(-1px);}
+.btn-outline{border-color:rgba(243,241,234,.18);color:var(--hi);}
+.btn-outline:hover{border-color:rgba(243,241,234,.45);}
+.btn-outline-s{border-color:rgba(21,24,31,.2);color:var(--hi-s);}
+.btn-outline-s:hover{border-color:rgba(21,24,31,.5);}
+
+/* ── LABELS / EYEBROWS ───────────────────────────────── */
+.label{font-family:var(--mono);font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;display:inline-flex;align-items:center;gap:.7em;color:var(--amber);}
+.label::before{content:"";display:block;width:18px;height:1px;background:var(--amber-dim);}
+.label-stone{color:var(--stamp);}
+.label-stone::before{background:var(--stamp-dim);}
+
+/* ── NAV ─────────────────────────────────────────────── */
+.nav{position:sticky;top:0;z-index:100;background:rgba(17,20,27,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(243,241,234,.08);}
+.nav-in{display:flex;align-items:center;justify-content:space-between;gap:32px;padding:17px 40px;max-width:var(--max);margin:0 auto;}
+.logo{font-family:var(--display);font-weight:600;font-size:1.1rem;display:flex;align-items:baseline;gap:8px;}
+.logo-badge{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;border:1px solid var(--amber-dim);color:var(--amber);padding:2px 6px;border-radius:3px;}
+.nav-links{display:flex;gap:28px;font-size:.9rem;color:var(--lo);}
+.nav-links a:hover{color:var(--hi);}
+.nav-actions{display:flex;gap:12px;}
+
+/* hamburger */
+.hbg{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:8px;margin:-8px;}
+.hbg span{display:block;width:22px;height:2px;background:var(--hi);border-radius:2px;transition:transform .25s,opacity .25s;}
+.hbg.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.hbg.open span:nth-child(2){opacity:0;}
+.hbg.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+.mob-menu{display:none;position:fixed;inset:0;top:57px;z-index:99;background:var(--ink);padding:24px 20px;flex-direction:column;}
+.mob-menu.open{display:flex;}
+.mob-menu a{font-family:var(--display);font-size:1.2rem;font-weight:500;padding:16px 0;border-bottom:1px solid rgba(243,241,234,.08);}
+.mob-menu .btn{margin-top:28px;width:100%;justify-content:center;}
+
+/* ── HERO ─────────────────────────────────────────────── */
+.hero{padding:88px 0 72px;position:relative;overflow:hidden;}
+.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% -10%, rgba(99,107,247,.07) 0%, transparent 70%);pointer-events:none;}
+.hero-content{text-align:center;max-width:760px;margin:0 auto;}
+.hero-content h1{font-size:clamp(2.2rem,5.5vw,4rem);font-weight:700;margin:18px 0 20px;}
+.hero-content h1 em{font-style:normal;color:var(--amber);}
+.hero-content p{font-size:1.1rem;color:var(--lo);max-width:52ch;margin:0 auto 32px;}
+.hero-ctas{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;}
+
+/* gateway diagram */
+.gw-diagram{margin:60px auto 0;max-width:820px;position:relative;}
+.gw-canvas-wrap{position:relative;height:180px;background:var(--ink-2);border:1px solid rgba(243,241,234,.1);border-radius:var(--r2);overflow:hidden;}
+.gw-canvas-wrap::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg, var(--ink-2) 0%, transparent 12%, transparent 88%, var(--ink-2) 100%);z-index:1;pointer-events:none;}
+canvas#gwCanvas{display:block;width:100%;height:100%;}
+.gw-nodes{display:flex;justify-content:space-between;padding:0 24px;margin-top:16px;}
+.gw-node{text-align:center;}
+.gw-node-icon{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--lo);margin-bottom:4px;}
+.gw-node-name{font-family:var(--display);font-weight:600;font-size:.88rem;}
+.gw-node-name.amber{color:var(--amber);}
+.gw-node-name.dim{color:var(--lo);}
+.gw-caption{text-align:center;margin-top:14px;font-family:var(--mono);font-size:.65rem;letter-spacing:.08em;color:var(--lo2);}
+
+/* ── STATS BAND ──────────────────────────────────────── */
+.stats-band{padding:40px 0;background:var(--ink-2);border-top:1px solid rgba(243,241,234,.08);border-bottom:1px solid rgba(243,241,234,.08);}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;}
+.stat-item{padding:8px 24px;text-align:center;}
+.stat-item + .stat-item{border-left:1px solid rgba(243,241,234,.08);}
+.stat-n{font-family:var(--display);font-weight:700;font-size:2rem;color:var(--hi);line-height:1;}
+.stat-n span{color:var(--amber);}
+.stat-l{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--lo);margin-top:6px;display:block;}
+
+/* ── QUANTUM THREAT ──────────────────────────────────── */
+.threat{padding:100px 0;background:var(--ink);}
+.threat-inner{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;}
+.threat-left{}
+.threat-year{font-family:var(--display);font-weight:700;font-size:clamp(5rem,12vw,9rem);color:transparent;-webkit-text-stroke:2px var(--stamp-dim);line-height:1;margin-bottom:16px;position:relative;}
+.threat-year::after{content:"?";position:absolute;top:8px;right:-20px;font-size:.25em;color:var(--stamp);-webkit-text-stroke:0;}
+.threat-left h2{font-size:clamp(1.4rem,2.5vw,2rem);margin-bottom:16px;}
+.threat-left p{font-size:.96rem;color:var(--lo);max-width:44ch;}
+.threat-right{background:var(--ink-3);border:1px solid rgba(243,241,234,.1);border-radius:var(--r2);padding:32px;}
+.threat-timeline{}
+.tl-item{display:flex;gap:20px;padding:16px 0;}
+.tl-item + .tl-item{border-top:1px solid rgba(243,241,234,.07);}
+.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.tl-dot.red{background:var(--stamp);}
+.tl-dot.amber{background:var(--amber);}
+.tl-dot.green{background:var(--green);}
+.tl-year{font-family:var(--mono);font-size:.72rem;color:var(--lo);display:block;margin-bottom:4px;}
+.tl-text{font-size:.9rem;}
+.tl-text b{color:var(--hi);display:block;margin-bottom:2px;}
+
+/* ── HOW IT WORKS ────────────────────────────────────── */
+.how{padding:100px 0;background:var(--ink-2);}
+.how-head{text-align:center;margin-bottom:56px;}
+.how-head h2{font-size:clamp(1.7rem,3vw,2.5rem);margin-bottom:12px;}
+.how-head p{color:var(--lo);font-size:1rem;max-width:52ch;margin:0 auto;}
+.how-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;}
+.step{background:var(--ink-3);padding:28px 22px;position:relative;}
+.step:first-child{border-radius:var(--r2) 0 0 var(--r2);}
+.step:last-child{border-radius:0 var(--r2) var(--r2) 0;}
+.step::after{content:"→";position:absolute;right:-14px;top:50%;transform:translateY(-50%);color:var(--lo2);font-size:1.1rem;z-index:1;}
+.step:last-child::after{display:none;}
+.step-n{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;color:var(--amber);margin-bottom:14px;}
+.step-icon{font-size:1.4rem;margin-bottom:12px;}
+.step h3{font-size:.96rem;margin-bottom:8px;}
+.step p{font-size:.84rem;color:var(--lo);line-height:1.5;}
+.how-note{margin-top:32px;text-align:center;font-size:.84rem;color:var(--lo);}
+.how-note strong{color:var(--hi);}
+
+/* providers */
+.providers{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:40px;}
+.prov-badge{font-family:var(--mono);font-size:.72rem;border:1px solid rgba(243,241,234,.12);border-radius:4px;padding:8px 14px;color:var(--lo);}
+
+/* ── GUARANTEES ──────────────────────────────────────── */
+.guar{padding:100px 0;background:var(--ink);}
+.guar-head{max-width:580px;margin-bottom:56px;}
+.guar-head h2{font-size:clamp(1.7rem,3vw,2.5rem);margin-bottom:12px;}
+.guar-head p{color:var(--lo);}
+.guar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.guar-card{background:var(--ink-2);border:1px solid rgba(243,241,234,.08);border-radius:var(--r2);padding:26px 22px;transition:border-color .2s;}
+.guar-card:hover{border-color:rgba(99,107,247,.3);}
+.guar-card.featured{border-color:var(--amber-dim);background:linear-gradient(160deg, var(--ink-3), var(--ink-2));}
+.guar-icon{width:38px;height:38px;border-radius:8px;background:var(--amber-bg);display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:18px;}
+.guar-icon.red{background:var(--stamp-bg);}
+.guar-icon.green{background:rgba(109,168,122,.1);}
+.guar-card h3{font-size:1.02rem;margin-bottom:8px;}
+.guar-card p{font-size:.86rem;color:var(--lo);line-height:1.55;}
+.guar-card .pill{display:inline-flex;font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;padding:3px 8px;border-radius:3px;margin-top:12px;}
+.pill-amber{background:var(--amber-bg);color:var(--amber);}
+.pill-green{background:rgba(109,168,122,.1);color:var(--green);}
+
+/* ── USE CASES ───────────────────────────────────────── */
+.cases{padding:100px 0;background:var(--stone);}
+.cases h2{font-size:clamp(1.7rem,3vw,2.5rem);color:var(--hi-s);margin-bottom:8px;}
+.cases .sub{color:var(--lo-s);margin-bottom:40px;}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;}
+.tab-btn{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;padding:8px 16px;border-radius:var(--r);border:1px solid var(--lo-s);color:var(--lo-s);background:none;cursor:pointer;transition:all .15s;}
+.tab-btn.active{background:var(--hi-s);color:var(--stone);border-color:var(--hi-s);}
+.tab-panel{display:none;}
+.tab-panel.active{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;}
+.case-text h3{font-family:var(--display);font-size:1.35rem;font-weight:600;color:var(--hi-s);margin-bottom:10px;}
+.case-text p{font-size:.95rem;color:var(--lo-s);margin-bottom:20px;}
+.case-text .reg{font-family:var(--mono);font-size:.65rem;letter-spacing:.1em;color:var(--stamp);text-transform:uppercase;}
+.case-flow{background:var(--hi-s);border-radius:var(--r2);padding:24px;}
+.case-step{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid rgba(236,233,225,.1);}
+.case-step:last-child{border-bottom:none;}
+.case-num{font-family:var(--mono);font-size:.7rem;color:var(--amber);flex-shrink:0;width:20px;padding-top:2px;}
+.case-desc{font-size:.85rem;color:var(--stone);}
+
+/* ── AUDIT CALLOUT ───────────────────────────────────── */
+.audit-band{padding:72px 0;background:var(--ink-3);border-top:1px solid rgba(243,241,234,.08);border-bottom:1px solid rgba(243,241,234,.08);}
+.audit-in{display:grid;grid-template-columns:1fr 2fr;gap:64px;align-items:start;}
+.audit-left .tag{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);border:1px solid var(--amber-dim);padding:4px 10px;border-radius:4px;display:inline-block;margin-bottom:16px;}
+.audit-left h2{font-size:1.7rem;margin-bottom:10px;}
+.audit-left p{font-size:.9rem;color:var(--lo);}
+.audit-fixes{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fix{background:var(--ink-2);border:1px solid rgba(243,241,234,.08);border-left:3px solid var(--amber);border-radius:var(--r);padding:14px 16px;}
+.fix h4{font-size:.9rem;margin-bottom:5px;}
+.fix p{font-size:.8rem;color:var(--lo);line-height:1.5;}
+
+/* ── COMPLIANCE ──────────────────────────────────────── */
+.comply{padding:100px 0;background:var(--ink);}
+.comply-head{text-align:center;margin-bottom:56px;}
+.comply-head h2{font-size:clamp(1.7rem,3vw,2.5rem);margin-bottom:12px;}
+.comply-head p{color:var(--lo);max-width:50ch;margin:0 auto;}
+.comply-stamps{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;}
+.cs{border:2px solid var(--stamp-dim);border-radius:var(--r);padding:20px 24px;min-width:180px;text-align:center;transition:border-color .2s;}
+.cs:nth-child(odd){transform:rotate(-0.8deg);}
+.cs:nth-child(even){transform:rotate(0.6deg);}
+.cs:hover{border-color:var(--stamp);transform:rotate(0) scale(1.02);}
+.cs-code{font-family:var(--mono);font-weight:600;font-size:.98rem;color:var(--hi);letter-spacing:.04em;}
+.cs-note{font-size:.78rem;color:var(--lo);margin-top:6px;line-height:1.4;}
+
+/* ── ROADMAP ─────────────────────────────────────────── */
+.roadmap{padding:100px 0;background:var(--ink-2);border-top:1px solid rgba(243,241,234,.08);}
+.roadmap-head{margin-bottom:48px;}
+.roadmap-head h2{font-size:clamp(1.7rem,3vw,2.5rem);margin-bottom:10px;}
+.roadmap-head p{color:var(--lo);}
+.rm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;}
+.rm{padding:28px 24px;background:var(--ink-3);}
+.rm:first-child{border-radius:var(--r2) 0 0 var(--r2);}
+.rm:last-child{border-radius:0 var(--r2) var(--r2) 0;}
+.rm-phase{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.rm-phase.done{color:var(--green);}
+.rm-phase.next{color:var(--amber);}
+.rm-phase.future{color:var(--lo);}
+.rm h3{font-size:1rem;margin-bottom:10px;}
+.rm ul{display:flex;flex-direction:column;gap:6px;}
+.rm li{font-size:.82rem;color:var(--lo);padding-left:16px;position:relative;line-height:1.45;}
+.rm li::before{position:absolute;left:0;top:0;}
+.rm.done li::before{content:"";color:var(--green);}
+.rm.next li::before{content:"→";color:var(--amber);}
+.rm.future li::before{content:"·";color:var(--lo);}
+
+/* ── CHI SIAMO ───────────────────────────────────────── */
+.about{padding:100px 0;background:var(--ink-2);border-top:1px solid rgba(243,241,234,.08);}
+.about-in{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start;}
+.about-left h2{font-size:clamp(1.7rem,3vw,2.3rem);margin-bottom:20px;}
+.about-mission{font-size:1.05rem;color:var(--lo);line-height:1.75;font-style:italic;border-left:2px solid var(--amber-dim);padding-left:20px;}
+.about-team{display:flex;flex-direction:column;gap:14px;}
+.team-card{display:flex;align-items:center;gap:18px;background:var(--ink-3);border:1px solid rgba(243,241,234,.08);border-radius:var(--r);padding:18px 20px;}
+.team-initial{width:44px;height:44px;border-radius:50%;background:var(--amber-bg);border:1px solid var(--amber-dim);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:1.1rem;color:var(--amber);flex-shrink:0;}
+.team-name{font-family:var(--display);font-weight:600;font-size:1rem;display:block;}
+.team-role{font-family:var(--mono);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--lo);display:block;margin-top:3px;}
+.team-note{font-size:.88rem;color:var(--lo);line-height:1.65;padding:4px 0;}
+
+/* ── CTA ─────────────────────────────────────────────── */
+.cta-section{padding:100px 0;background:var(--ink);text-align:center;position:relative;overflow:hidden;}
+.cta-section::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 50% 100%, rgba(99,107,247,.06), transparent 60%);pointer-events:none;}
+.cta-section h2{font-size:clamp(1.8rem,4vw,3rem);margin-bottom:14px;}
+.cta-section p{color:var(--lo);font-size:1rem;max-width:48ch;margin:0 auto 36px;}
+.cta-btns{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;}
+.cta-note{margin-top:20px;font-family:var(--mono);font-size:.65rem;letter-spacing:.08em;color:var(--lo2);}
+
+/* ── FOOTER ──────────────────────────────────────────── */
+footer{padding:56px 0 32px;border-top:1px solid rgba(243,241,234,.08);background:var(--ink);}
+.foot-in{display:grid;grid-template-columns:1.8fr repeat(3,1fr);gap:40px;}
+.foot-brand{font-family:var(--display);font-weight:600;font-size:1.05rem;}
+.foot-desc{font-size:.84rem;color:var(--lo);margin-top:10px;max-width:30ch;}
+.foot-col h4{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--lo2);margin-bottom:14px;}
+.foot-col a{display:block;font-size:.88rem;color:var(--lo);margin-bottom:9px;}
+.foot-col a:hover{color:var(--hi);}
+.foot-bottom{margin-top:48px;padding-top:22px;border-top:1px solid rgba(243,241,234,.07);display:flex;justify-content:space-between;align-items:center;font-size:.74rem;color:var(--lo2);}
+.foot-bottom .mono{font-family:var(--mono);letter-spacing:.05em;}
+
+/* ── TECH ACCORDION ──────────────────────────────────── */
+.tech-toggle{display:inline-flex;align-items:center;gap:8px;background:none;border:1px solid rgba(99,107,247,.35);color:var(--amber);font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;padding:8px 14px;border-radius:var(--r);cursor:pointer;transition:all .15s;margin-top:18px;}
+.tech-toggle:hover{background:var(--amber-bg);border-color:var(--amber);}
+.tech-toggle .tt-icon{transition:transform .25s;font-size:.85rem;display:inline-block;}
+.tech-toggle.open .tt-icon{transform:rotate(45deg);}
+.tech-detail{display:none;margin-top:14px;background:var(--ink-3);border:1px solid rgba(99,107,247,.18);border-left:3px solid var(--amber);border-radius:var(--r);padding:18px 20px;text-align:left;}
+.tech-detail.open{display:block;}
+.tech-detail p{font-size:.86rem;color:var(--lo);line-height:1.7;margin-bottom:10px;}
+.tech-detail p:last-child{margin-bottom:0;}
+.tech-detail b{color:var(--hi);}
+.tech-detail code{font-family:var(--mono);font-size:.78rem;color:var(--amber);background:rgba(99,107,247,.08);padding:1px 6px;border-radius:3px;}
+
+/* ── REVEAL ──────────────────────────────────────────── */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .65s ease, transform .65s ease;}
+.reveal.vis{opacity:1;transform:translateY(0);}
+.reveal-delay-1{transition-delay:.1s;}
+.reveal-delay-2{transition-delay:.2s;}
+.reveal-delay-3{transition-delay:.3s;}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}}
+
+/* ── RESPONSIVE ──────────────────────────────────────── */
+@media(max-width:960px){
+ .wrap{padding:0 24px;}
+ .nav-in{padding:17px 24px;}
+ .nav-links{display:none;}
+ .nav-actions .btn-outline{display:none;}
+ .hbg{display:flex;}
+ .hero{padding:64px 0 52px;}
+ .threat-inner{grid-template-columns:1fr;gap:40px;}
+ .threat-year{font-size:5rem;}
+ .how-steps{grid-template-columns:1fr 1fr;}
+ .step::after{display:none;}
+ .step:nth-child(1){border-radius:var(--r2) 0 0 0;}
+ .step:nth-child(2){border-radius:0 var(--r2) 0 0;}
+ .step:nth-child(3){border-radius:0 0 0 var(--r2);}
+ .step:nth-child(4){border-radius:0 0 var(--r2) 0;}
+ .guar-grid{grid-template-columns:1fr 1fr;}
+ .tab-panel.active{grid-template-columns:1fr;}
+ .audit-in{grid-template-columns:1fr;gap:32px;}
+ .about-in{grid-template-columns:1fr;gap:36px;}
+ .rm-grid{grid-template-columns:1fr;}
+ .rm:first-child,.rm:last-child,.rm{border-radius:0;}
+ .rm:first-child{border-radius:var(--r2) var(--r2) 0 0;}
+ .rm:last-child{border-radius:0 0 var(--r2) var(--r2);}
+ .stats-grid{grid-template-columns:repeat(2,1fr);}
+ .stat-item:nth-child(3){border-left:none;border-top:1px solid rgba(243,241,234,.08);}
+ .stat-item:nth-child(4){border-top:1px solid rgba(243,241,234,.08);}
+ .foot-in{grid-template-columns:1fr 1fr;gap:32px;}
+}
+@media(max-width:640px){
+ .wrap{padding:0 18px;}
+ .nav-in{padding:15px 18px;}
+ .hero{padding:48px 0 40px;}
+ .hero-content h1{font-size:2rem;}
+ .hero-content p{font-size:.96rem;}
+ .gw-canvas-wrap{height:130px;}
+ .how-steps{grid-template-columns:1fr;}
+ .step:first-child,.step:last-child,.step:nth-child(2),.step:nth-child(3){border-radius:0;}
+ .step:first-child{border-radius:var(--r2) var(--r2) 0 0;}
+ .step:last-child{border-radius:0 0 var(--r2) var(--r2);}
+ .guar-grid{grid-template-columns:1fr;}
+ .comply-stamps{gap:10px;}
+ .cs{min-width:140px;padding:14px 16px;}
+ .cs:nth-child(odd),.cs:nth-child(even){transform:none;}
+ .foot-in{grid-template-columns:1fr;gap:28px;}
+ .foot-bottom{flex-direction:column;gap:8px;text-align:center;}
+ .audit-fixes{grid-template-columns:1fr;}
+ .stats-grid{grid-template-columns:1fr 1fr;}
+ .cases .tab-btn{font-size:.62rem;padding:7px 12px;}
+ .hero-ctas,.cta-btns{flex-direction:column;width:100%;}
+ .hero-ctas .btn,.cta-btns .btn{width:100%;justify-content:center;}
+}
+</style>
+</head>
+<body id="top">
+
+<!-- NAV -->
+<header class="nav">
+ <div class="nav-in">
+ <a href="/" class="logo"><img src="logo-icon.png" alt="FortySeal" style="height:44px;width:auto;vertical-align:middle;"> <span class="logo-badge">GATEWAY</span></a>
+ <nav class="nav-links">
+ <a href="/" style="color:var(--amber);">Gateway</a>
+ <a href="software">Il Software</a>
+ <a href="casi-uso">Casi d'uso</a>
+ <a href="faq">FAQ</a>
+ <a href="contatti">Contatti</a>
+ </nav>
+ <div class="nav-actions">
+ <a href="https://fortyseal-7qur.onrender.com/portal/login/" target="_blank" class="btn btn-amber">Prova ora →</a>
+ </div>
+ <button class="hbg" aria-label="Menu" aria-expanded="false" onclick="toggleMenu(this)">
+ <span></span><span></span><span></span>
+ </button>
+ </div>
+</header>
+<nav class="mob-menu" id="mobMenu">
+ <a href="software" onclick="closeMenu()">Il Software</a>
+ <a href="#come-funziona" onclick="closeMenu()">Come funziona</a>
+ <a href="#garanzie" onclick="closeMenu()">Garanzie</a>
+ <a href="#casi-uso" onclick="closeMenu()">Casi d'uso</a>
+ <a href="#conformita" onclick="closeMenu()">Conformità</a>
+ <a href="#chi-siamo" onclick="closeMenu()">Chi siamo</a>
+ <a href="https://fortyseal-7qur.onrender.com/portal/login/" class="btn btn-amber" target="_blank" onclick="closeMenu()">Prova ora →</a>
+</nav>
+
+<main>
+
+<!-- HERO -->
+<section class="hero">
+ <div class="wrap">
+ <div class="hero-content">
+ <span class="label">FortySeal Gateway</span>
+ <h1>Cifra prima.<br>Archivia dopo.<br><em>Ovunque.</em></h1>
+ <p>Ogni giorno la tua azienda carica documenti sul cloud. Chi gestisce quei server può leggerli. Con FortySeal non può più: ogni file viene reso illeggibile prima ancora di partire, e le chiavi per aprirlo restano solo a te.</p>
+ <div class="hero-ctas">
+ <a href="https://fortyseal-7qur.onrender.com/portal/login/" class="btn btn-amber" target="_blank">Prova ora →</a>
+ <a href="contatti" class="btn btn-outline" target="_blank">Parla con il team tecnico</a>
+ </div>
+ <button class="tech-toggle" onclick="toggleTech(this)"><span class="tt-icon">+</span> Scopri di più</button>
+ <div class="tech-detail">
+ <p>Il Gateway si interpone tra le tue applicazioni e qualsiasi storage S3-compatible. Ogni file viene cifrato in memoria con <b>AES-256-GCM</b>; la chiave simmetrica è incapsulata con <b>ML-KEM-1024</b> e l'intero blob è firmato con <b>ML-DSA-87</b> — gli algoritmi post-quantistici standardizzati dal NIST nel 2024 (FIPS 203/204/205, livello di sicurezza massimo).</p>
+ <p>Lo storage riceve solo un blob opaco con nome <code>UUID</code> casuale: zero plaintext, zero metadati leggibili, zero possibilità di correlazione tra file.</p>
+ </div>
+ </div>
+
+ <!-- GATEWAY ANIMATION -->
+ <div class="gw-diagram">
+ <div class="gw-canvas-wrap">
+ <canvas id="gwCanvas"></canvas>
+ </div>
+ <div class="gw-nodes">
+ <div class="gw-node"><div class="gw-node-icon">Client</div><div class="gw-node-name dim">La tua app</div></div>
+ <div class="gw-node"><div class="gw-node-icon">Gateway</div><div class="gw-node-name amber">FortySeal</div></div>
+ <div class="gw-node"><div class="gw-node-icon">Storage</div><div class="gw-node-name dim">Cloud S3</div></div>
+ </div>
+ <div class="gw-caption">I dati entrano leggibili · il Gateway li cifra · il cloud non vede mai il contenuto</div>
+ </div>
+ </div>
+</section>
+
+<!-- STATS BAND -->
+<div class="stats-band reveal">
+ <div class="wrap">
+ <div class="stats-grid">
+ <div class="stat-item"><div class="stat-n"><span>0</span> byte</div><span class="stat-l">leggibili su storage</span></div>
+ <div class="stat-item"><div class="stat-n">NIST <span>L5</span></div><span class="stat-l">livello massimo certificato</span></div>
+ <div class="stat-item"><div class="stat-n"><span>5</span></div><span class="stat-l">provider S3 supportati</span></div>
+ <div class="stat-item"><div class="stat-n"><span>4</span></div><span class="stat-l">correzioni security audit 2026</span></div>
+ </div>
+ </div>
+</div>
+
+<!-- QUANTUM THREAT -->
+<section class="threat" id="perche">
+ <div class="wrap">
+ <div class="threat-inner">
+ <div class="threat-left reveal">
+ <span class="label" style="margin-bottom:20px;">Perché ora</span>
+ <div class="threat-year">2035</div>
+ <h2>Quello che archivi oggi, qualcuno potrebbe leggerlo tra dieci anni.</h2>
+ <p>La protezione usata oggi dalla maggior parte dei sistemi ha una scadenza: i computer quantistici, quando arriveranno, sapranno romperla. Chi ruba dati protetti adesso deve solo conservarli e aspettare. FortySeal usa una protezione di nuova generazione, progettata per resistere anche a quel momento.</p>
+ <button class="tech-toggle" onclick="toggleTech(this)"><span class="tt-icon">+</span> Nel dettaglio</button>
+ <div class="tech-detail">
+ <p>La minaccia si chiama <b>harvest now, decrypt later</b>: traffico cifrato con RSA/ECC viene intercettato e archiviato oggi, in attesa che un computer quantistico esegua l'algoritmo di Shor e lo decifri. È una strategia documentata dei servizi di intelligence.</p>
+ <p>FortySeal usa <b>ML-KEM-1024</b> e <b>ML-DSA-87</b>, selezionati dal NIST dopo 8 anni di valutazione internazionale e pubblicati come standard FIPS 203/204 nel 2024. Si basano su problemi matematici reticolari che l'algoritmo di Shor non sa risolvere.</p>
+ </div>
+ </div>
+ <div class="threat-right reveal reveal-delay-2">
+ <div class="threat-timeline">
+ <div class="tl-item">
+ <div class="tl-dot red"></div>
+ <div>
+ <span class="tl-year">Oggi — Minaccia attiva</span>
+ <div class="tl-text"><b>Raccogli ora, decifra dopo</b>Dati cifrati con RSA/ECC vengono archiviati da attori malintenzionati in attesa di computer quantistici più potenti.</div>
+ </div>
+ </div>
+ <div class="tl-item">
+ <div class="tl-dot amber"></div>
+ <div>
+ <span class="tl-year">2024 — Standard pubblicati</span>
+ <div class="tl-text"><b>NIST finalizza FIPS 203/204/205</b>Dopo 8 anni di selezione internazionale, tre algoritmi post-quantistici diventano standard ufficiali americani.</div>
+ </div>
+ </div>
+ <div class="tl-item">
+ <div class="tl-dot green"></div>
+ <div>
+ <span class="tl-year">Oggi — FortySeal Gateway</span>
+ <div class="tl-text"><b>ML-KEM-1024 + ML-DSA-87 + AES-256-GCM</b>I tuoi file su cloud sono già cifrati con algoritmi immuni al calcolo quantistico, implementati e testati.</div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how reveal" id="come-funziona">
+ <div class="wrap">
+ <div class="how-head">
+ <span class="label" style="margin-bottom:16px;">Come funziona</span>
+ <h2>Quattro passaggi. Il cloud non legge nulla.</h2>
+ <p>Per te non cambia niente nel modo di lavorare. Cambia solo quello che gli altri possono vedere dei tuoi file: niente.</p>
+ </div>
+ <div class="how-steps">
+ <div class="step reveal reveal-delay-1">
+ <div class="step-n">01</div>
+ <div class="step-icon"></div>
+ <h3>Invii un file</h3>
+ <p>Come fai oggi, dallo stesso sistema che già usi. Nessuna modifica alle tue abitudini o al tuo software.</p>
+ </div>
+ <div class="step reveal reveal-delay-2">
+ <div class="step-n">02</div>
+ <div class="step-icon"></div>
+ <h3>Il Gateway lo protegge</h3>
+ <p>Prima di partire, il file viene reso completamente illeggibile e sigillato con una firma digitale. Tutto in un istante, senza mai lasciare tracce.</p>
+ </div>
+ <div class="step reveal reveal-delay-3">
+ <div class="step-n">03</div>
+ <div class="step-icon"></div>
+ <h3>Il cloud lo archivia</h3>
+ <p>Quello che arriva sul cloud è un pacchetto sigillato con un nome casuale. Il provider non sa cosa contiene, né a chi appartiene.</p>
+ </div>
+ <div class="step reveal">
+ <div class="step-n">04</div>
+ <div class="step-icon"></div>
+ <h3>Tutto viene verificato</h3>
+ <p>Ogni notte e ad ogni download, il sistema controlla che nessuno abbia toccato i tuoi file. Se qualcosa non torna, il file viene bloccato.</p>
+ </div>
+ </div>
+ <div style="text-align:center;">
+ <button class="tech-toggle" onclick="toggleTech(this)"><span class="tt-icon">+</span> Nel dettaglio</button>
+ <div class="tech-detail" style="max-width:720px;margin-left:auto;margin-right:auto;">
+ <p><b>Step 1</b> — la tua applicazione esegue una chiamata <code>PUT</code> REST standard, identica a quella di S3. Zero modifiche al codice esistente.</p>
+ <p><b>Step 2</b> — il Gateway cifra il payload con <b>AES-256-GCM</b>, incapsula la chiave con <b>ML-KEM-1024</b> e firma il blob con <b>ML-DSA-87</b>. Tutto avviene in RAM: il plaintext non viene mai scritto su disco.</p>
+ <p><b>Step 3</b> — sullo storage arriva solo il blob <code>FSEAL</code> con chiave fisica UUID randomica: nessun nome file, nessuna struttura, nessuna correlazione possibile tra oggetti.</p>
+ <p><b>Step 4</b> — verifica di integrità notturna, ad ogni download e su richiesta manuale. La firma viene controllata in modalità fail-closed: se non è valida, il file non viene consegnato (HTTP 409). Ogni esecuzione lascia uno storico permanente utilizzabile come evidenza di compliance.</p>
+ </div>
+ </div>
+ <p class="how-note" style="margin-top:32px;">Compatibile con <strong>Amazon S3</strong>, <strong>MinIO</strong>, <strong>Cubbit DS3</strong>, <strong>Wasabi</strong>, <strong>Backblaze B2</strong> — stesso endpoint, stesse chiamate REST.</p>
+ <div class="providers">
+ <span class="prov-badge">Amazon S3</span>
+ <span class="prov-badge">MinIO</span>
+ <span class="prov-badge">Cubbit DS3</span>
+ <span class="prov-badge">Wasabi</span>
+ <span class="prov-badge">Backblaze B2</span>
+ </div>
+ </div>
+</section>
+
+<!-- GUARANTEES -->
+<section class="guar" id="garanzie">
+ <div class="wrap">
+ <div class="guar-head reveal">
+ <span class="label" style="margin-bottom:16px;">Cosa garantisce</span>
+ <h2>Quello che il cloud da solo non può darti.</h2>
+ <p>Questi non sono optional da attivare o configurare. Sono il modo in cui il Gateway è costruito — funzionano sempre, per tutti, senza eccezioni.</p>
+ </div>
+ <div class="guar-grid">
+ <div class="guar-card featured reveal reveal-delay-1">
+ <h3>Nessuno può leggere i tuoi file — nemmeno noi</h3>
+ <p>Il provider cloud che archivia i tuoi dati non può aprirli. FortySeal stessa non può aprirli. Solo chi ha le chiavi giuste può farlo.</p>
+ <button class="tech-toggle" onclick="toggleTech(this)"><span class="tt-icon">+</span> Leggi di più</button>
+ <div class="tech-detail"><p>La chiave simmetrica <code>AES-256-GCM</code> è incapsulata con <b>ML-KEM-1024</b>: solo chi possiede la chiave privata PQC può recuperarla. Il blob sullo storage è matematicamente illeggibile senza di essa.</p></div>
+ </div>
+ <div class="guar-card reveal reveal-delay-2">
+ <h3>Se qualcuno tocca un tuo file, lo scopri subito</h3>
+ <p>Ogni file ha un sigillo digitale. Se viene modificato — anche di un solo bit — il sistema se ne accorge e non lo consegna. Il file alterato viene bloccato prima di arrivare a te.</p>
+ <button class="tech-toggle" onclick="toggleTech(this)"><span class="tt-icon">+</span> Leggi di più</button>
+ <div class="tech-detail"><p><code>AES-256-GCM</code> autentica il ciphertext. <b>ML-DSA-87</b> firma l'intero blob. Il <code>SHA3-256</code> del plaintext è verificabile dopo decifratura. Verifica in modalità fail-closed: firma non valida → HTTP 409, consegna bloccata.</p></div>
+ </div>
+ <div class="guar-card reveal reveal-delay-3">
+ <h3>Ogni operazione lascia una traccia certificata</h3>
+ <p>Chi ha caricato un file, quando, da dove. Chi lo ha scaricato. Chi ha tentato di accedervi senza permesso. Un registro che non si può cancellare né modificare.</p>
+ <button class="tech-toggle" onclick="toggleTech(this)"><span class="tt-icon">+</span> Leggi di più</button>
+ <div class="tech-detail"><p>Ogni blob porta la firma del mittente. Il log è immutabile su blockchain privata con retention 365 giorni. Ogni verifica di integrità genera un record <code>IntegrityCheckRun</code> permanente — evidenza di compliance per NIS2 Art. 21 e DORA Art. 9.</p></div>
+ </div>
+ <div class="guar-card reveal">
+ <h3>I tuoi dati sono separati da quelli degli altri</h3>
+ <p>Se FortySeal serve anche altre aziende, i loro file e i tuoi non si mescolano mai. Non tecnicamente, non logicamente.</p>
+ <button class="tech-toggle" onclick="toggleTech(this)"><span class="tt-icon">+</span> Leggi di più</button>
+ <div class="tech-detail"><p>Ogni organizzazione ha il proprio service account con keypair PQC dedicati. I file usano chiavi fisiche UUID randomiche: nessuna correlazione possibile tra oggetti di tenant diversi sullo stesso storage S3.</p></div>
+ </div>
+ <div class="guar-card reveal reveal-delay-1">
+ <h3>Il sistema si protegge da solo dagli attacchi</h3>
+ <p>Se qualcuno tenta di entrare a forza, il sistema lo blocca. Se un file viene compromesso, viene isolato. Nessuno deve intervenire manualmente.</p>
+ <button class="tech-toggle" onclick="toggleTech(this)"><span class="tt-icon">+</span> Leggi di più</button>
+ <div class="tech-detail"><p>Rate limiting per-API-key, lockout brute-force per IP (8 tentativi / 15 min), blocco automatico dei blob con anomalie di integrità. Webhook asincroni HMAC per notifiche su ogni evento critico.</p></div>
+ </div>
+ <div class="guar-card reveal reveal-delay-2">
+ <h3>Le chiavi di sicurezza si aggiornano senza bloccare niente</h3>
+ <p>Le chiavi crittografiche vengono rinnovate periodicamente — una buona pratica di sicurezza. I tuoi file restano accessibili durante e dopo il rinnovo.</p>
+ <button class="tech-toggle" onclick="toggleTech(this)"><span class="tt-icon">+</span> Leggi di più</button>
+ <div class="tech-detail"><p>Rotazione delle keypair PQC (KEM + firma) tramite comando <code>gateway_rotate_secret_key</code>. Ogni blob mantiene il riferimento alla chiave con cui è stato cifrato — i file precedenti restano decifrabili, i nuovi usano le chiavi aggiornate.</p></div>
+ </div>
+ </div>
+ </div>
+</section>
+
+<!-- USE CASES -->
+<section class="cases reveal" id="casi-uso">
+ <div class="wrap">
+ <span class="label label-stone" style="margin-bottom:16px;">Chi lo usa</span>
+ <h2>Lo stesso Gateway, settori diversi.</h2>
+ <p class="sub">Dal medico che invia referti alla banca che archivia contratti — il problema è lo stesso: dati che non devono finire in mani sbagliate.</p>
+ <div class="tabs">
+ <button class="tab-btn active" onclick="switchTab(0)">Istituto Finanziario</button>
+ <button class="tab-btn" onclick="switchTab(1)">Sistema Sanitario</button>
+ <button class="tab-btn" onclick="switchTab(2)">SaaS / Backup</button>
+ <button class="tab-btn" onclick="switchTab(3)">Pipeline CI/CD</button>
+ </div>
+
+ <div class="tab-panel active" id="tab-0">
+ <div class="case-text">
+ <span class="reg">DORA · NIS2 · Regolamentato</span>
+ <h3>Archiviazione documenti regolamentati</h3>
+ <p>Una banca archivia contratti, estratti conto e report di rischio su Cubbit DS3. DORA impone cifratura a riposo, audit trail, separazione dei ruoli e resilienza operativa.</p>
+ <a href="contatti" class="btn btn-outline-s" target="_blank">Parla con il team tecnico</a>
+ </div>
+ <div class="case-flow">
+ <div class="case-step"><span class="case-num">1</span><span class="case-desc">Il sistema ERP invia PUT con il contratto</span></div>
+ <div class="case-step"><span class="case-num">2</span><span class="case-desc">Il Gateway cifra con FSEAL — ML-KEM-1024 + AES-256-GCM</span></div>
+ <div class="case-step"><span class="case-num">3</span><span class="case-desc">Il blob opaco raggiunge Cubbit — Cubbit non può leggere nulla</span></div>
+ <div class="case-step"><span class="case-num">4</span><span class="case-desc">Ogni operazione genera un log immutabile con IP e timestamp</span></div>
+ <div class="case-step"><span class="case-num">5</span><span class="case-desc">In caso di audit, il registro è consultabile dal pannello admin</span></div>
+ </div>
+ </div>
+
+ <div class="tab-panel" id="tab-1">
+ <div class="case-text">
+ <span class="reg">GDPR · HIPAA · Dati sensibili</span>
+ <h3>Pipeline dati clinici</h3>
+ <p>Un ospedale invia referti DICOM su AWS S3. I dati devono essere cifrati prima di lasciare il perimetro ospedaliero, con chiavi separate per ogni reparto.</p>
+ <a href="contatti" class="btn btn-outline-s" target="_blank">Parla con il team tecnico</a>
+ </div>
+ <div class="case-flow">
+ <div class="case-step"><span class="case-num">1</span><span class="case-desc">Il sistema HIS invia il referto con API Key permesso-only upload</span></div>
+ <div class="case-step"><span class="case-num">2</span><span class="case-desc">Il Gateway cifra — AWS non accede mai al contenuto in chiaro</span></div>
+ <div class="case-step"><span class="case-num">3</span><span class="case-desc">Il medico scarica via GET con la sua PQC password personale</span></div>
+ <div class="case-step"><span class="case-num">4</span><span class="case-desc">Le chiavi del reparto radiologia sono separate da quelle di cardiologia</span></div>
+ </div>
+ </div>
+
+ <div class="tab-panel" id="tab-2">
+ <div class="case-text">
+ <span class="reg">Multi-cloud · Strategia 3-2-1</span>
+ <h3>Disaster recovery multi-provider</h3>
+ <p>Un'azienda SaaS vuole backup su 3 provider diversi con la garanzia che nessuno possa leggere i dati, e che il backup sopravviva alla compromissione di un singolo provider.</p>
+ <a href="contatti" class="btn btn-outline-s" target="_blank">Parla con il team tecnico</a>
+ </div>
+ <div class="case-flow">
+ <div class="case-step"><span class="case-num">1</span><span class="case-desc">3 GatewayTenant configurati su AWS, Wasabi, Backblaze</span></div>
+ <div class="case-step"><span class="case-num">2</span><span class="case-desc">Lo script invia lo stesso file ai tre Gateway — 3 copie FSEAL identiche</span></div>
+ <div class="case-step"><span class="case-num">3</span><span class="case-desc">Nessun provider può leggere i dati da solo</span></div>
+ <div class="case-step"><span class="case-num">4</span><span class="case-desc">Recovery: un provider disponibile + la stessa PQC password</span></div>
+ </div>
+ </div>
+
+ <div class="tab-panel" id="tab-3">
+ <div class="case-text">
+ <span class="reg">DevOps · CI/CD · Minimo privilegio</span>
+ <h3>Artefatti e secrets cifrati</h3>
+ <p>Una pipeline GitHub Actions archivia artefatti di build e configurazioni sensibili su storage esterno, senza esporre i dati al provider CI/CD.</p>
+ <a href="contatti" class="btn btn-outline-s" target="_blank">Parla con il team tecnico</a>
+ </div>
+ <div class="case-flow">
+ <div class="case-step"><span class="case-num">1</span><span class="case-desc">La pipeline usa l'API Key con permesso solo upload</span></div>
+ <div class="case-step"><span class="case-num">2</span><span class="case-desc">Gli artefatti vengono cifrati FSEAL prima del bucket</span></div>
+ <div class="case-step"><span class="case-num">3</span><span class="case-desc">Il sistema di deployment usa API Key separata — solo download</span></div>
+ <div class="case-step"><span class="case-num">4</span><span class="case-desc">L'audit trail traccia quale pipeline ha caricato cosa e quando</span></div>
+ </div>
+ </div>
+ </div>
+</section>
+
+<!-- AUDIT -->
+<section class="audit-band reveal">
+ <div class="wrap">
+ <div class="audit-in">
+ <div class="audit-left">
+ <span class="tag">Security Audit · luglio 2026</span>
+ <h2>Abbiamo cercato i problemi. Li abbiamo trovati. Li abbiamo risolti.</h2>
+ <p>A luglio 2026 abbiamo ispezionato tutto il sistema dall'interno, cercando punti deboli. Ne abbiamo trovati quattro. Tutti e quattro sono stati corretti e coperti da test automatici che li verificano ad ogni aggiornamento.</p>
+ <p style="font-size:.84rem;margin-top:10px;">Essere trasparenti su questo è una scelta: nessun sistema nasce perfetto. Chi non lo dice, mente.</p>
+ </div>
+ <div class="audit-fixes">
+ <div class="fix reveal reveal-delay-1">
+ <h4>Firma verificata ad ogni download</h4>
+ <p>Se un file viene alterato dopo il caricamento, viene bloccato prima di arrivare a chi lo ha richiesto.</p>
+ </div>
+ <div class="fix reveal reveal-delay-2">
+ <h4>Nessun accesso non dichiarato</h4>
+ <p>Un accesso senza permessi espliciti non entra. Prima, per errore, entrava con permessi di amministratore.</p>
+ </div>
+ <div class="fix reveal reveal-delay-1">
+ <h4>Login protetto da tentativi ripetuti</h4>
+ <p>Dopo 8 tentativi falliti in 15 minuti, l'accesso viene bloccato per quell'indirizzo e per quell'account.</p>
+ </div>
+ <div class="fix reveal reveal-delay-2">
+ <h4>Notifiche solo verso destinazioni verificate</h4>
+ <p>Le notifiche automatiche non possono essere dirottate verso sistemi non autorizzati.</p>
+ </div>
+ </div>
+ </div>
+ </div>
+</section>
+
+<!-- COMPLIANCE -->
+<section class="comply reveal" id="conformita">
+ <div class="wrap">
+ <div class="comply-head">
+ <span class="label" style="margin-bottom:16px;">Conformità normativa</span>
+ <h2>Se la tua azienda deve rispettare queste norme, FortySeal le rispetta con te.</h2>
+ <p>NIS2, DORA, GDPR non sono sticker da mettere sul sito. Sono requisiti tecnici precisi che FortySeal soddisfa per architettura, non per configurazione.</p>
+ </div>
+ <div class="comply-stamps">
+ <div class="cs"><span class="cs-code">NIS2</span><div class="cs-note">Cifratura, audit trail immutabile, verifica integrità</div></div>
+ <div class="cs"><span class="cs-code">DORA</span><div class="cs-note">Gestione rischio ICT, separazione chiavi, incidenti</div></div>
+ <div class="cs"><span class="cs-code">GDPR</span><div class="cs-note">Privacy by design, 0 byte in chiaro, dati in UE</div></div>
+ <div class="cs"><span class="cs-code">NIST FIPS 203</span><div class="cs-note">ML-KEM-1024 — Level 5</div></div>
+ <div class="cs"><span class="cs-code">NIST FIPS 204</span><div class="cs-note">ML-DSA-87 — Level 5</div></div>
+ <div class="cs"><span class="cs-code">NIST FIPS 205</span><div class="cs-note">SLH-DSA-SHA2-256f — Level 5</div></div>
+ </div>
+ </div>
+</section>
+
+<!-- ROADMAP -->
+<section class="roadmap reveal" id="roadmap">
+ <div class="wrap">
+ <div class="roadmap-head">
+ <span class="label" style="margin-bottom:14px;">Roadmap</span>
+ <h2>Dove siamo, dove andiamo.</h2>
+ <p style="color:var(--lo);">Fase 1 e Fase 2 in produzione. Fase 2b in arrivo.</p>
+ </div>
+ <div class="rm-grid">
+ <div class="rm done">
+ <div class="rm-phase done"> Completata — Giugno 2026</div>
+ <h3>Fase 1 + 2 — Production-ready</h3>
+ <ul>
+ <li>Cifratura FSEAL v1 con ML-KEM-1024 e ML-DSA-87</li>
+ <li>5 provider S3: AWS, MinIO, Cubbit, Wasabi, Backblaze</li>
+ <li>Multi-tenant, audit trail, dashboard</li>
+ <li>Rate limiting, webhook asincroni, rotazione chiavi</li>
+ <li>Security audit interno applicato</li>
+ </ul>
+ </div>
+ <div class="rm next">
+ <div class="rm-phase next">→ In arrivo — Q3 2026</div>
+ <h3>Fase 2b — Compatibilità estesa</h3>
+ <ul>
+ <li>AWS Signature V4 — compatibilità nativa aws cli</li>
+ <li>Presigned URL PQC — download diretto one-time</li>
+ <li>TTL automatico oggetti — policy retention</li>
+ <li>Object versioning</li>
+ <li>Webhook delivery log persistente</li>
+ </ul>
+ </div>
+ <div class="rm future">
+ <div class="rm-phase future">· Enterprise — Q4 2026 / Q1 2027</div>
+ <h3>Fase 3 — Scala e certificazioni</h3>
+ <ul>
+ <li>SDK ufficiali Python, Node.js, Go</li>
+ <li>Kubernetes + Helm chart scalabile</li>
+ <li>HSM integration (FIPS 140-3 Level 3)</li>
+ <li>Certificazione eIDAS 2</li>
+ <li>SIEM export (Splunk, Sentinel, QRadar)</li>
+ </ul>
+ </div>
+ </div>
+ </div>
+</section>
+
+<!-- CHI SIAMO -->
+<section class="about reveal" id="chi-siamo">
+ <div class="wrap">
+ <div class="about-in">
+ <div class="about-left">
+ <span class="label" style="margin-bottom:20px;">Chi siamo</span>
+ <h2>Perché abbiamo costruito FortySeal.</h2>
+ <p class="about-mission">Volevamo che la protezione dei dati di livello professionale fosse accessibile a chi ne ha bisogno — senza dover assumere un team di crittografi o capire ogni algoritmo. La sicurezza seria non dovrebbe essere un privilegio.</p>
+ </div>
+ <div class="about-team">
+ <div class="team-card">
+ <div>
+ <span class="team-name">Giacomo</span>
+ <span class="team-role">Co-fondatore</span>
+ </div>
+ </div>
+ <div class="team-card">
+ <div>
+ <span class="team-name">Alessandro</span>
+ <span class="team-role">Co-fondatore</span>
+ </div>
+ </div>
+ <p class="team-note">Due amici appassionati di tecnologia, convinti che la crittografia post-quantistica non debba essere un privilegio per chi ha un team di ingegneri dedicato.</p>
+ </div>
+ </div>
+ </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section reveal" id="cta">
+ <div class="wrap">
+ <span class="label" style="margin-bottom:20px;justify-content:center;">Inizia ora</span>
+ <h2>Vuoi vederlo funzionare sui tuoi dati?</h2>
+ <p>Mostraci il tuo caso concreto. In 30 minuti ti facciamo vedere cosa cambia per te.</p>
+ <div class="cta-btns">
+ <a href="https://fortyseal-7qur.onrender.com/portal/login/" class="btn btn-amber" target="_blank">Prova ora →</a>
+ <a href="contatti" class="btn btn-outline" target="_blank">Parla con il team</a>
+ </div>
+ </div>
+</section>
+
+</main>
+
+<footer>
+ <div class="wrap">
+ <div class="foot-in">
+ <div>
+ <div class="foot-brand"><img src="logo-full.png" alt="FortySeal" style="height:60px;width:auto;display:block;margin-bottom:10px;"></div>
+ <p class="foot-desc">Crittografia post-quantistica applicata dove i tuoi dati già vivono.</p>
+ </div>
+ <div class="foot-col">
+ <h4>Gateway</h4>
+ <a href="#come-funziona">Come funziona</a>
+ <a href="#garanzie">Garanzie</a>
+ <a href="#casi-uso">Casi d'uso</a>
+ <a href="#roadmap">Roadmap</a>
+ </div>
+ <div class="foot-col">
+ <h4>Azienda</h4>
+ <a href="software.html">Il Software</a>
+ <a href="#chi-siamo">Chi siamo</a>
+ <a href="mailto:sealforty@gmail.com">Lavora con noi</a>
+ </div>
+ <div class="foot-col">
+ <h4>Contatti</h4>
+ <a href="mailto:sealforty@gmail.com">sealforty@gmail.com</a>
+ <a href="https://fortyseal-7qur.onrender.com/portal/login/" target="_blank">Prova ora</a>
+ <a href="contatti" target="_blank">Parla con noi</a>
+ </div>
+ </div>
+       <div class="foot-col">
+        <h4>Seguici</h4>
+        <a href="https://www.linkedin.com/company/fortyseal/" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://www.instagram.com/fortyseal/" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    <div class="foot-bottom">
+ <span>© 2026 FortySeal — Tutti i diritti riservati.</span>
+ <span class="mono">NIST FIPS 203 / 204 / 205 · Level 5 · Production-ready</span>
+ </div>
+ </div>
+</footer>
+
+<script>
+/* ── GATEWAY ANIMATION ──────────────────────────────── */
+(function(){
+ const canvas = document.getElementById('gwCanvas');
+ if(!canvas) return;
+ const ctx = canvas.getContext('2d');
+ let W, H, dpr, packets=[], lastTime=0;
+
+ const LABELS = ['diagnosi','iban','nome','polizza','saldo','CF','indirizzo','dosaggio'];
+ const AMBER = '#636BF7', STAMP = '#BD443D', DIM = '#252C3D', LOTEXT = '#5C6480';
+
+ function resize(){
+ dpr = window.devicePixelRatio||1;
+ W = canvas.parentElement.offsetWidth;
+ H = canvas.parentElement.offsetHeight;
+ canvas.width = W * dpr;
+ canvas.height = H * dpr;
+ canvas.style.width = W+'px';
+ canvas.style.height = H+'px';
+ ctx.scale(dpr, dpr);
+ }
+
+ function spawnPacket(){
+ packets.push({
+ x: W*0.08,
+ y: H*0.35 + (Math.random()*0.3-0.15)*H,
+ label: LABELS[Math.floor(Math.random()*LABELS.length)],
+ speed: 1.2 + Math.random()*0.8,
+ state: 'plain', // plain | encrypting | cipher
+ alpha: 1,
+ encryptProgress: 0,
+ w: 0, h: 18
+ });
+ }
+
+ function drawRoundRect(x,y,w,h,r,fill){
+ ctx.beginPath();
+ ctx.moveTo(x+r,y);
+ ctx.lineTo(x+w-r,y);
+ ctx.arcTo(x+w,y,x+w,y+h,r);
+ ctx.lineTo(x+w,y+h-r);
+ ctx.arcTo(x+w,y+h,x,y+h,r);
+ ctx.lineTo(x+r,y+h);
+ ctx.arcTo(x,y+h,x,y,r);
+ ctx.lineTo(x,y+r);
+ ctx.arcTo(x,y,x+w,y,r);
+ ctx.closePath();
+ ctx.fillStyle=fill;
+ ctx.fill();
+ }
+
+ function tick(ts){
+ if(!lastTime) lastTime=ts;
+ const dt = Math.min(ts-lastTime, 40);
+ lastTime=ts;
+ ctx.clearRect(0,0,W,H);
+
+ const gwX = W*0.42, gwW = W*0.16;
+ const gwY = H*0.12, gwH = H*0.76;
+ const cloudX = W*0.84;
+
+ // gateway box
+ ctx.save();
+ ctx.globalAlpha=0.55;
+ drawRoundRect(gwX, gwY, gwW, gwH, 6, '#1E2433');
+ ctx.restore();
+ ctx.strokeStyle='rgba(216,166,84,0.25)';
+ ctx.lineWidth=1;
+ ctx.beginPath();
+ ctx.roundRect(gwX, gwY, gwW, gwH, 6);
+ ctx.stroke();
+
+ // gateway label
+ ctx.font=`500 ${Math.max(9,W*0.011)}px 'JetBrains Mono',monospace`;
+ ctx.fillStyle=AMBER;
+ ctx.textAlign='center';
+ ctx.globalAlpha=0.8;
+ ctx.fillText('GATEWAY', gwX+gwW/2, H*0.5);
+ ctx.globalAlpha=0.35;
+ ctx.font=`400 ${Math.max(7,W*0.008)}px 'JetBrains Mono',monospace`;
+ ctx.fillText('ML-KEM-1024', gwX+gwW/2, H*0.5+14);
+ ctx.globalAlpha=1;
+
+ // node icons
+ ctx.textAlign='center';
+ ctx.font = `600 ${Math.max(10,W*0.013)}px 'Space Grotesk',sans-serif`;
+ ctx.fillStyle='rgba(243,241,234,0.5)';
+ ctx.fillText('[ APP ]', W*0.1, H*0.52);
+ ctx.fillText('[ S3 ]', cloudX, H*0.52);
+
+ // update packets
+ packets = packets.filter(p=>p.alpha>0.02);
+ for(let p of packets){
+ const cx = p.x;
+ // measure text width lazily
+ ctx.font=`500 ${Math.max(9,W*0.012)}px 'JetBrains Mono',monospace`;
+ const tw = ctx.measureText(p.label).width;
+ p.w = tw + 16;
+
+ // phase transitions
+ if(p.state==='plain' && cx+p.w/2 >= gwX){
+ p.state='encrypting';
+ }
+ if(p.state==='encrypting'){
+ p.encryptProgress += dt*0.012;
+ if(p.encryptProgress>=1){ p.state='cipher'; p.label=randomHex(); }
+ }
+ if(p.state==='cipher' && cx > cloudX + 30){
+ p.alpha -= dt*0.025;
+ }
+
+ // move
+ p.x += p.speed * (dt/16);
+
+ // draw
+ const col = p.state==='plain' ? AMBER :
+ p.state==='encrypting' ? lerpColor(AMBER, STAMP, p.encryptProgress) : STAMP;
+ ctx.globalAlpha = p.alpha;
+
+ // pill bg
+ drawRoundRect(cx - p.w/2, p.y - 9, p.w, 18, 4,
+ p.state==='cipher' ? 'rgba(189,68,61,0.15)' : 'rgba(216,166,84,0.12)');
+
+ // pill border
+ ctx.strokeStyle = col.replace('#','') ? col+'44' : col;
+ ctx.lineWidth=1;
+ ctx.beginPath();
+ ctx.roundRect(cx - p.w/2, p.y - 9, p.w, 18, 4);
+ ctx.stroke();
+
+ // text
+ ctx.font=`500 ${Math.max(9,W*0.012)}px 'JetBrains Mono',monospace`;
+ ctx.fillStyle = col;
+ ctx.textAlign='center';
+ ctx.fillText(p.label, cx, p.y+4);
+ ctx.globalAlpha=1;
+ }
+
+ // spawn
+ if(ts % 1400 < dt+30 && packets.length < 6) spawnPacket();
+ requestAnimationFrame(tick);
+ }
+
+ function lerpColor(a,b,t){
+ const ah=parseInt(a.slice(1),16),bh=parseInt(b.slice(1),16);
+ const ar=(ah>>16)&255,ag=(ah>>8)&255,ab=ah&255;
+ const br=(bh>>16)&255,bg=(bh>>8)&255,bb=bh&255;
+ const r=Math.round(ar+(br-ar)*t).toString(16).padStart(2,'0');
+ const g=Math.round(ag+(bg-ag)*t).toString(16).padStart(2,'0');
+ const bl2=Math.round(ab+(bb-ab)*t).toString(16).padStart(2,'0');
+ return `#${r}${g}${bl2}`;
+ }
+ function randomHex(){
+ return Array.from({length:6},()=>Math.floor(Math.random()*16).toString(16)).join('')+'…';
+ }
+
+ resize();
+ window.addEventListener('resize',()=>{ resize(); });
+ // initial packets
+ for(let i=0;i<3;i++) setTimeout(()=>spawnPacket(), i*500);
+ requestAnimationFrame(tick);
+})();
+
+/* ── TABS ───────────────────────────────────────────── */
+function switchTab(i){
+ document.querySelectorAll('.tab-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+ document.querySelectorAll('.tab-panel').forEach((p,j)=>p.classList.toggle('active',j===i));
+}
+
+/* ── REVEAL ─────────────────────────────────────────── */
+if(!window.matchMedia('(prefers-reduced-motion:reduce)').matches){
+ const io=new IntersectionObserver(entries=>{
+ entries.forEach(e=>{ if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);} });
+ },{threshold:0.1});
+ document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+} else {
+ document.querySelectorAll('.reveal').forEach(el=>el.classList.add('vis'));
+}
+
+/* ── TECH ACCORDION ──────────────────────────────────── */
+function toggleTech(btn){
+ const detail = btn.nextElementSibling;
+ const isOpen = detail.classList.toggle('open');
+ btn.classList.toggle('open', isOpen);
+}
+
+/* ── HAMBURGER ──────────────────────────────────────── */
+function toggleMenu(btn){
+ const m=document.getElementById('mobMenu');
+ const open=m.classList.toggle('open');
+ btn.classList.toggle('open',open);
+ btn.setAttribute('aria-expanded',open);
+ document.body.style.overflow=open?'hidden':'';
+}
+function closeMenu(){
+ const m=document.getElementById('mobMenu');
+ const b=document.querySelector('.hbg');
+ m.classList.remove('open');
+ b.classList.remove('open');
+ b.setAttribute('aria-expanded','false');
+ document.body.style.overflow='';
+}
+
+/* ── SMOOTH SCROLL ──────────────────────────────────── */
+document.querySelectorAll('a[href^="#"]').forEach(link => {
+ link.addEventListener('click', function(e) {
+ const id = this.getAttribute('href');
+ if(id === '#' || id === '#top') return;
+ const target = document.querySelector(id);
+ if(target) {
+ e.preventDefault();
+ const navH = document.querySelector('.nav').offsetHeight;
+ const top = target.getBoundingClientRect().top + window.scrollY - navH - 16;
+ window.scrollTo({ top, behavior: 'smooth' });
+ }
+ });
+});
+</script>
+</body>
+</html>

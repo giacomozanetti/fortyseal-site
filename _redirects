@@ -1,0 +1,19 @@
+# URL puliti senza .html
+/gateway      /index.html      200
+/software     /software.html   200
+/contatti     /contatti.html   200
+/faq          /faq.html        200
+/assistenza   /assistenza.html 200
+/casi-uso     /casi-uso.html   200
+
+# Vecchie URL Wix → nuove pagine
+/centrodassistenza          /assistenza.html   301
+/domandefrequentifaq        /faq.html          301
+/comefunziona               /index.html        301
+/informativaprivacy         /privacy.html      301
+/informativa-sulla-privacy  /privacy.html      301
+/casiduso                   /casi-uso.html     301
+/casi-duso                  /casi-uso.html     301
+/termini-e-condizioni       /termini.html      301
+/contact-8                  /contatti.html     301
+/chi-siamo                  /index.html        301

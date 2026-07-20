@@ -1,0 +1,33 @@
+{
+  "name": "FortySeal — Cifratura post-quantistica per storage S3",
+  "short_name": "FortySeal",
+  "description": "Il layer crittografico che rende il tuo cloud cieco. Cifratura post-quantistica NIST, 0 byte leggibili su storage.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo-icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon",
+      "purpose": "any"
+    }
+  ],
+  "theme_color": "#11141B",
+  "background_color": "#11141B",
+  "categories": ["business", "technology"],
+  "screenshots": [
+    {
+      "src": "/logo-full.png",
+      "sizes": "any",
+      "type": "image/png"
+    }
+  ]
+}
