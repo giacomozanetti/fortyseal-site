@@ -5,6 +5,8 @@
 /faq          /faq.html        200
 /assistenza   /assistenza.html 200
 /casi-uso     /casi-uso.html   200
+/termini      /termini.html    200
+/privacy      /privacy.html    200
 
 # Vecchie URL Wix → nuove pagine
 /centrodassistenza          /assistenza.html   301
