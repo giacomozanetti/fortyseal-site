@@ -1,0 +1,25 @@
+{
+  "rewrites": [
+    { "source": "/gateway", "destination": "/index.html" },
+    { "source": "/software", "destination": "/software.html" },
+    { "source": "/contatti", "destination": "/contatti.html" },
+    { "source": "/faq", "destination": "/faq.html" },
+    { "source": "/assistenza", "destination": "/assistenza.html" },
+    { "source": "/casi-uso", "destination": "/casi-uso.html" },
+    { "source": "/termini", "destination": "/termini.html" },
+    { "source": "/privacy", "destination": "/privacy.html" }
+  ],
+  "redirects": [
+    { "source": "/centrodassistenza", "destination": "/assistenza", "permanent": true },
+    { "source": "/domandefrequentifaq", "destination": "/faq", "permanent": true },
+    { "source": "/comefunziona", "destination": "/", "permanent": true },
+    { "source": "/informativaprivacy", "destination": "/privacy", "permanent": true },
+    { "source": "/informativa-sulla-privacy", "destination": "/privacy", "permanent": true },
+    { "source": "/casiduso", "destination": "/casi-uso", "permanent": true },
+    { "source": "/casi-duso", "destination": "/casi-uso", "permanent": true },
+    { "source": "/termini-e-condizioni", "destination": "/termini", "permanent": true },
+    { "source": "/contact-8", "destination": "/contatti", "permanent": true },
+    { "source": "/chi-siamo", "destination": "/", "permanent": true },
+    { "source": "/pricing-plans/plans-pricing", "destination": "https://fortyseal-7qur.onrender.com/personal/register/", "permanent": true }
+  ]
+}
