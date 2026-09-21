@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contatti — FortySeal</title>
+<meta name="description" content="Contatta il team FortySeal per una demo, informazioni tecniche o per valutare l'integrazione del Gateway post-quantistico nella tua infrastruttura.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" href="/logo-icon.png">
+<link rel="manifest" href="/manifest.json">
+<style>
+:root{
+ --ink:#11141B; --ink-2:#181D27; --ink-3:#1E2433;
+ --hi:#F3F1EA; --lo:#8A91A8; --lo2:#5C6480;
+ --amber:#636BF7; --amber-2:#7B83F9; --amber-dim:#3D44C8; --amber-bg:rgba(99,107,247,.08);
+ --green:#6DA87A; --stamp:#BD443D;
+ --r:6px; --r2:12px;
+ --display:'Space Grotesk',sans-serif; --body:'IBM Plex Sans',sans-serif; --mono:'JetBrains Mono',monospace;
+ --max:1140px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ink);color:var(--hi);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 40px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5em;padding:13px 24px;border-radius:var(--r);font-weight:600;font-size:.94rem;font-family:var(--body);border:1px solid transparent;cursor:pointer;transition:all .15s}
+.btn-amber{background:var(--amber);color:#fff}.btn-amber:hover{background:var(--amber-2);transform:translateY(-1px)}
+.label{font-family:var(--mono);font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;display:inline-flex;align-items:center;gap:.7em;color:var(--amber)}
+.label:before{content:"";display:block;width:18px;height:1px;background:var(--amber-dim)}
+.nav{position:sticky;top:0;z-index:100;background:rgba(17,20,27,.88);backdrop-filter:blur(12px);border-bottom:1px solid rgba(243,241,234,.08)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;gap:32px;padding:17px 40px;max-width:var(--max);margin:0 auto}
+.logo{display:flex;align-items:center;gap:8px}.logo img{height:44px;width:auto}
+.logo-badge{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;border:1px solid var(--amber-dim);color:var(--amber);padding:2px 6px;border-radius:3px}
+.nav-links{display:flex;gap:28px;font-size:.9rem;color:var(--lo)}.nav-links a:hover,.nav-links .active{color:var(--hi)}
+.nav-actions{display:flex;gap:12px}
+.hbg{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:8px}
+.hbg span{display:block;width:22px;height:2px;background:var(--hi);border-radius:2px}
+.mob-menu{display:none;position:fixed;inset:0;top:79px;z-index:99;background:var(--ink);padding:24px 20px;flex-direction:column}
+.mob-menu.open{display:flex}.mob-menu a{font-family:var(--display);font-size:1.15rem;padding:15px 0;border-bottom:1px solid rgba(243,241,234,.08)}
+.contact{min-height:calc(100vh - 80px);padding:88px 0 100px;position:relative;overflow:hidden}
+.contact:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 65% 55% at 55% 0%,rgba(99,107,247,.08),transparent 70%);pointer-events:none}
+.contact-grid{position:relative;display:grid;grid-template-columns:.9fr 1.1fr;gap:80px;align-items:start}
+.copy h1{font-family:var(--display);font-size:clamp(2.4rem,5vw,4rem);line-height:1.08;letter-spacing:-.03em;margin:20px 0}
+.copy h1 em{font-style:normal;color:var(--amber)}
+.copy>p{color:var(--lo);font-size:1.05rem;max-width:46ch;margin-bottom:38px}
+.info{display:flex;flex-direction:column;gap:14px}
+.info-card{background:var(--ink-2);border:1px solid rgba(243,241,234,.08);border-radius:var(--r);padding:18px 20px}
+.info-card span{display:block;font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--lo2);margin-bottom:4px}
+.info-card strong{font-family:var(--display);font-size:.96rem;font-weight:600}
+.form-card{background:var(--ink-2);border:1px solid rgba(243,241,234,.1);border-radius:var(--r2);padding:34px}
+.form-card h2{font-family:var(--display);font-size:1.45rem;margin-bottom:6px}.form-card .sub{color:var(--lo);font-size:.9rem;margin-bottom:26px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{margin-bottom:17px}.field label{display:block;font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--lo);margin-bottom:7px}
+input,textarea,select{width:100%;background:var(--ink-3);border:1px solid rgba(243,241,234,.12);border-radius:var(--r);color:var(--hi);font:inherit;padding:12px 14px;outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,textarea:focus,select:focus{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-bg)}
+textarea{min-height:145px;resize:vertical}option{background:var(--ink-3)}
+.form-card .btn{width:100%;margin-top:3px}
+.form-card .btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.status{display:none;margin-top:16px;padding:12px 14px;border-radius:var(--r);font-size:.88rem}
+.status.ok{display:block;background:rgba(109,168,122,.1);border:1px solid rgba(109,168,122,.35);color:#9AC7A4}
+.status.err{display:block;background:rgba(189,68,61,.1);border:1px solid rgba(189,68,61,.35);color:#E49A95}
+.privacy{font-size:.75rem;color:var(--lo2);margin-top:13px;line-height:1.5}
+.hp{position:absolute!important;left:-9999px!important;opacity:0!important}
+footer{padding:36px 0;border-top:1px solid rgba(243,241,234,.08)}
+.foot{display:flex;justify-content:space-between;gap:24px;align-items:center;color:var(--lo2);font-size:.75rem}.mono{font-family:var(--mono)}
+@media(max-width:900px){.wrap{padding:0 24px}.nav-in{padding:17px 24px}.nav-links{display:none}.hbg{display:flex}.contact-grid{grid-template-columns:1fr;gap:45px}.copy>p{max-width:60ch}}
+@media(max-width:640px){.wrap{padding:0 18px}.nav-in{padding:15px 18px}.nav-actions{display:none}.contact{padding:55px 0 70px}.row{grid-template-columns:1fr}.form-card{padding:23px 18px}.foot{flex-direction:column;text-align:center}}
+</style>
+</head>
+<body>
+<header class="nav">
+ <div class="nav-in">
+  <a href="/" class="logo"><img src="/logo-icon.png" alt="FortySeal"><span class="logo-badge">GATEWAY</span></a>
+  <nav class="nav-links">
+   <a href="/">Gateway</a><a href="/software">Il Software</a><a href="/casi-uso">Casi d'uso</a><a href="/faq">FAQ</a><a class="active" href="/contatti">Contatti</a>
+  </nav>
+  <div class="nav-actions"><a href="https://fortyseal-7qur.onrender.com/portal/login/" target="_blank" rel="noopener" class="btn btn-amber">Prova ora →</a></div>
+  <button class="hbg" aria-label="Menu" onclick="document.getElementById('mobMenu').classList.toggle('open')"><span></span><span></span><span></span></button>
+ </div>
+</header>
+<nav class="mob-menu" id="mobMenu">
+ <a href="/">Gateway</a><a href="/software">Il Software</a><a href="/casi-uso">Casi d'uso</a><a href="/faq">FAQ</a><a href="/contatti">Contatti</a>
+</nav>
+
+<main>
+<section class="contact">
+ <div class="wrap">
+  <div class="contact-grid">
+   <div class="copy">
+    <span class="label">Contatti</span>
+    <h1>Parliamo del tuo caso <em>concreto.</em></h1>
+    <p>Vuoi capire come integrare FortySeal nella tua infrastruttura, richiedere una demo o approfondire gli aspetti tecnici? Scrivici: ti risponderemo direttamente.</p>
+    <div class="info">
+     <div class="info-card"><span>Email</span><strong><a href="mailto:sealforty@gmail.com">sealforty@gmail.com</a></strong></div>
+     <div class="info-card"><span>Per cosa puoi contattarci</span><strong>Demo · Integrazione · Partnership · Supporto tecnico</strong></div>
+    </div>
+   </div>
+
+   <div class="form-card">
+    <h2>Invia un messaggio</h2>
+    <p class="sub">Compila il form e il messaggio verrà recapitato al team FortySeal.</p>
+    <form id="contactForm" action="https://formspree.io/f/xdaqgojw" method="POST">
+     <div class="row">
+      <div class="field"><label for="name">Nome e cognome *</label><input id="name" name="name" type="text" autocomplete="name" required></div>
+      <div class="field"><label for="email">Email *</label><input id="email" name="email" type="email" autocomplete="email" required></div>
+     </div>
+     <div class="row">
+      <div class="field"><label for="company">Azienda</label><input id="company" name="company" type="text" autocomplete="organization"></div>
+      <div class="field"><label for="subject">Oggetto *</label>
+       <select id="subject" name="subject" required>
+        <option value="" selected disabled>Seleziona...</option>
+        <option>Richiesta demo</option><option>Integrazione tecnica</option><option>Informazioni commerciali</option><option>Partnership</option><option>Altro</option>
+       </select>
+      </div>
+     </div>
+     <div class="field"><label for="message">Messaggio *</label><textarea id="message" name="message" required placeholder="Raccontaci brevemente cosa ti serve..."></textarea></div>
+     <input class="hp" type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true">
+     <button id="submitBtn" class="btn btn-amber" type="submit">Invia messaggio →</button>
+     <div id="formStatus" class="status" role="status" aria-live="polite"></div>
+     <p class="privacy">Inviando il modulo accetti che i dati inseriti vengano utilizzati esclusivamente per rispondere alla tua richiesta.</p>
+    </form>
+   </div>
+  </div>
+ </div>
+</section>
+</main>
+
+<footer>
+ <div class="wrap"><div class="foot"><span>© 2026 FortySeal — Tutti i diritti riservati.</span><span class="mono">NIST FIPS 203 / 204 / 205 · Level 5</span></div></div>
+</footer>
+
+<script>
+const form = document.getElementById('contactForm');
+const statusBox = document.getElementById('formStatus');
+const submitBtn = document.getElementById('submitBtn');
+
+form.addEventListener('submit', async (event) => {
+ event.preventDefault();
+ statusBox.className = 'status';
+ statusBox.textContent = '';
+ submitBtn.disabled = true;
+ submitBtn.textContent = 'Invio in corso...';
+ try {
+  const response = await fetch(form.action, {
+   method: 'POST',
+   body: new FormData(form),
+   headers: { 'Accept': 'application/json' }
+  });
+  if (response.ok) {
+   form.reset();
+   statusBox.className = 'status ok';
+   statusBox.textContent = 'Messaggio inviato con successo. Ti risponderemo il prima possibile.';
+  } else {
+   throw new Error('Invio non riuscito');
+  }
+ } catch (error) {
+  statusBox.className = 'status err';
+  statusBox.textContent = 'Non è stato possibile inviare il messaggio. Riprova oppure scrivi a sealforty@gmail.com.';
+ } finally {
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'Invia messaggio →';
+ }
+});
+</script>
+</body>
+</html>
