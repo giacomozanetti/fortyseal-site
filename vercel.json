@@ -19,7 +19,6 @@
     { "source": "/casi-duso", "destination": "/casi-uso", "permanent": true },
     { "source": "/termini-e-condizioni", "destination": "/termini", "permanent": true },
     { "source": "/contact-8", "destination": "/contatti", "permanent": true },
-    { "source": "/chi-siamo", "destination": "/", "permanent": true },
-    { "source": "/pricing-plans/plans-pricing", "destination": "https://fortyseal-7qur.onrender.com/personal/register/", "permanent": true }
+    { "source": "/chi-siamo", "destination": "/", "permanent": true }
   ]
 }
