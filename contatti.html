@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contatti - FortySeal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="/logo-icon.png">
+    <link rel="manifest" href="/manifest.json">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8NMMLDH2L3"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-8NMMLDH2L3');
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #11141B;
+            --fg: #F3F1EA;
+            --lo: #8A91A8;
+            --lo2: #5C6480;
+            --amber: #B19D3C;
+            --hi: #636BF7;
+            --mono: 'JetBrains Mono', monospace;
+        }
+        body { background: var(--bg); color: var(--fg); font-family: 'IBM Plex Sans', sans-serif; line-height: 1.6; }
+        
+        header {
+            padding: 2rem;
+            border-bottom: 1px solid rgba(243, 241, 234, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { font-size: 1.3rem; font-weight: 600; text-decoration: none; color: var(--fg); }
+        nav { display: flex; gap: 2rem; }
+        nav a { color: var(--lo); text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
+        nav a:hover { color: var(--amber); }
+        
+        main { max-width: 1200px; margin: 0 auto; padding: 4rem 2rem; }
+        
+        .hero {
+            margin-bottom: 4rem;
+        }
+        .label {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--amber);
+            margin-bottom: 1rem;
+        }
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--lo);
+            max-width: 600px;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin-top: 3rem;
+        }
+        
+        .section h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .contact-method {
+            margin-bottom: 2rem;
+        }
+        .contact-method h3 {
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--lo2);
+            margin-bottom: 0.5rem;
+        }
+        .contact-method p {
+            color: var(--lo);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .contact-method a {
+            color: var(--hi);
+            text-decoration: none;
+        }
+        .contact-method a:hover {
+            text-decoration: underline;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--lo2);
+            margin-bottom: 0.5rem;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.85rem;
+            background: rgba(243, 241, 234, 0.03);
+            border: 1px solid rgba(243, 241, 234, 0.1);
+            color: var(--fg);
+            font-size: 0.95rem;
+            border-radius: 3px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .form-group select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23636BF7' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.85rem center;
+            padding-right: 2.5rem;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--hi);
+            background-color: rgba(99, 107, 247, 0.03);
+        }
+        .form-group select:focus {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%237A83FF' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+        }
+        .form-group select option {
+            background: var(--bg);
+            color: var(--fg);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+        
+        .btn {
+            background: #636BF7;
+            color: var(--fg);
+            padding: 0.9rem 1.8rem;
+            border: none;
+            border-radius: 3px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .btn:hover {
+            background: #7A83FF;
+            transform: translateY(-2px);
+        }
+        
+        footer {
+            border-top: 1px solid rgba(243, 241, 234, 0.1);
+            padding: 3rem 2rem;
+            margin-top: 4rem;
+            color: var(--lo2);
+            font-size: 0.85rem;
+        }
+        
+        .success-msg {
+            background: rgba(109, 168, 122, 0.1);
+            border: 1px solid rgba(109, 168, 122, 0.3);
+            color: #6DA87A;
+            padding: 1rem;
+            border-radius: 3px;
+            margin-bottom: 2rem;
+            display: none;
+        }
+        .success-msg.show {
+            display: block;
+        }
+        
+        @media (max-width: 900px) {
+            .content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            h1 { font-size: 2rem; }
+            nav { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" class="logo">FortySeal</a>
+        <nav>
+            <a href="/">Gateway</a>
+            <a href="software">Il Software</a>
+            <a href="casi-uso">Casi d'uso</a>
+            <a href="faq">FAQ</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="hero">
+            <div class="label">CONTATTI</div>
+            <h1>Parliamo.</h1>
+            <p class="subtitle">Hai domande sul prodotto, vuoi una demo o hai bisogno di supporto tecnico? Siamo qui.</p>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <h2>Come raggiungerci</h2>
+                
+                <div class="contact-method">
+                    <h3>Email</h3>
+                    <p><a href="mailto:sealforty@gmail.com">sealforty@gmail.com</a></p>
+                </div>
+
+                <div class="contact-method">
+                    <h3>Demo</h3>
+                    <p>Vuoi vedere FortySeal in azione? <a href="/pricing-plans/plans-pricing">Prova direttamente</a> o scrivici per una demo personalizzata.</p>
+                </div>
+
+                <div class="contact-method">
+                    <h3>Supporto tecnico</h3>
+                    <p>Per problemi tecnici scrivi a <a href="mailto:sealforty@gmail.com">sealforty@gmail.com</a> o visita <a href="assistenza">l'Assistenza</a>.</p>
+                </div>
+
+                <div class="contact-method">
+                    <h3>Gateway enterprise</h3>
+                    <p>Per l'infrastruttura PQC Storage Gateway visita la <a href="software">pagina dedicata</a>.</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Scrivici</h2>
+                
+                <div class="success-msg" id="successMsg">✅ Messaggio inviato! Ti contatteremo presto.</div>
+
+                <form id="contactForm" action="https://formspree.io/f/xdaqgojw" method="POST">
+                    <div class="form-group">
+                        <label>Nome e cognome</label>
+                        <input type="text" name="name" required placeholder="Mario Rossi">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" required placeholder="mario@azienda.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Oggetto</label>
+                        <select name="subject" required>
+                            <option value="">Richiesta demo</option>
+                            <option value="Richiesta demo">Richiesta demo</option>
+                            <option value="Informazioni prodotto">Informazioni prodotto</option>
+                            <option value="Gateway enterprise">Gateway enterprise</option>
+                            <option value="Supporto tecnico">Supporto tecnico</option>
+                            <option value="Altro">Altro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Messaggio (opzionale)</label>
+                        <textarea name="message" placeholder="Scrivi il tuo messaggio..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn">Invia messaggio</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 FortySeal. Cifratura post-quantistica per storage S3.</p>
+        <p style="margin-top: 1rem;">
+            <a href="privacy" style="color: var(--lo2); text-decoration: none;">Privacy</a> | 
+            <a href="termini" style="color: var(--lo2); text-decoration: none;">Termini e condizioni</a>
+        </p>
+    </footer>
+
+    <script>
+        const form = document.getElementById('contactForm');
+        const successMsg = document.getElementById('successMsg');
+        
+        form.addEventListener('submit', function(e) {
+            setTimeout(() => {
+                successMsg.classList.add('show');
+                form.style.display = 'none';
+            }, 500);
+        });
+    </script>
+</body>
+</html>
