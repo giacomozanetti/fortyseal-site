@@ -602,5 +602,7 @@ function toggleTech(btn){
 function toggleMenu(btn){const m=document.getElementById('mobMenu');const open=m.classList.toggle('open');btn.classList.toggle('open',open);btn.setAttribute('aria-expanded',open);document.body.style.overflow=open?'hidden':'';}
 function closeMenu(){const m=document.getElementById('mobMenu');const b=document.querySelector('.hbg');m.classList.remove('open');b.classList.remove('open');b.setAttribute('aria-expanded','false');document.body.style.overflow='';}
 </script>
+ <!-- Vercel Web Analytics -->
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
